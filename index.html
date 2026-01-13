@@ -8,6 +8,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
+      darkMode: 'media',
       theme: {
         extend: {
           colors: {
@@ -59,18 +60,22 @@
     "rxjs/webSocket": "https://esm.sh/rxjs@^7.8.2/webSocket?conditions=es2015",
     "rxjs/testing": "https://esm.sh/rxjs@^7.8.2/testing?conditions=es2015",
     "rxjs/fetch": "https://esm.sh/rxjs@^7.8.2/fetch?conditions=es2015",
-    "@google/genai": "https://next.esm.sh/@google/genai@^1.34.0?external=rxjs",
-    "@angular/platform-browser": "https://next.esm.sh/@angular/platform-browser@^21.0.6?external=rxjs",
-    "@angular/compiler": "https://next.esm.sh/@angular/compiler@^21.0.6?external=rxjs",
-    "@angular/forms": "https://next.esm.sh/@angular/forms@^21.0.6?external=rxjs",
-    "@angular/common": "https://next.esm.sh/@angular/common@^21.0.6?external=rxjs",
-    "@angular/common/http": "https://next.esm.sh/@angular/common@^21.0.6/http?external=rxjs",
-    "@angular/core": "https://next.esm.sh/@angular/core@^21.0.6?external=rxjs"
+    "@angular/compiler": "https://esm.sh/@angular/compiler@^21.0.8?external=rxjs",
+    "@angular/platform-browser": "https://esm.sh/@angular/platform-browser@^21.0.8?external=rxjs",
+    "@angular/common/http": "https://esm.sh/@angular/common@^21.0.8/http?external=rxjs",
+    "@angular/core": "https://esm.sh/@angular/core@^21.0.8?external=rxjs",
+    "@google/genai": "https://esm.sh/@google/genai@^1.35.0?external=rxjs",
+    "@angular/common": "https://esm.sh/@angular/common@^21.0.8?external=rxjs",
+    "@angular/forms": "https://esm.sh/@angular/forms@^21.0.8?external=rxjs",
+    "vite": "https://esm.sh/vite@^7.3.1?external=rxjs",
+    "@analogjs/vite-plugin-angular": "https://esm.sh/@analogjs/vite-plugin-angular@^2.2.1?external=rxjs",
+    "zone.js": "https://esm.sh/zone.js@^0.16.0?external=rxjs"
   }
 }
 </script>
 </head>
 <body class="bg-light dark:bg-dark-bg text-dark dark:text-light">
   <app-root></app-root>
+  <script type="module" src="/src/main.ts"></script>
 </body>
 </html>
