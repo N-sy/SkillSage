@@ -13,8 +13,13 @@ export default defineConfig(({ mode }) => {
         tsconfig: path.resolve(__dirname, 'tsconfig.app.json'),
       }),
     ],
+    resolve: {
+      alias: {
+        '@': path.resolve(__dirname, 'src'),
+      },
+    },
     define: {
-      'process.env.API_KEY': JSON.stringify(process.env.API_KEY)
-    }
+      'process.env.API_KEY': JSON.stringify(process.env.API_KEY),
+    },
   };
 });
