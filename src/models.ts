@@ -1,4 +1,5 @@
 
+
 export type AppState = 'home' | 'selection' | 'setup' | 'assessment' | 'generating' | 'dashboard';
 export type LearningFramework = 'standard' | 'disss';
 export type Goal = '3 Months' | '6 Months' | 'Lifelong';
@@ -94,4 +95,10 @@ export interface UserSchedule {
   sleepTime: string;
   workSchedule: string;
   existingHabits: string;
+}
+
+export interface SkillSuggestion {
+  skill: string;
+  reason: string;
+  category: string;
 }

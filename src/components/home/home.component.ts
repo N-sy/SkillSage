@@ -1,7 +1,8 @@
 
 import { Component, ChangeDetectionStrategy, input, output, computed, signal, inject, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { LearningPlan } from '../../models';
+import { FormsModule } from '@angular/forms';
+import { LearningPlan, SkillSuggestion } from '../../models';
 import { SystemsGeneratorComponent } from '../systems-generator/systems-generator.component';
 import { HomeSageComponent } from '../home-sage/home-sage.component';
 import { GeminiService } from '../../services/gemini.service';
@@ -10,7 +11,7 @@ import { GeminiService } from '../../services/gemini.service';
   selector: 'app-home',
   templateUrl: './home.component.html',
   standalone: true,
-  imports: [CommonModule, SystemsGeneratorComponent, HomeSageComponent],
+  imports: [CommonModule, FormsModule, SystemsGeneratorComponent, HomeSageComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HomeComponent {
@@ -24,36 +25,40 @@ export class HomeComponent {
   isSystemsCoachExpanded = signal(false);
   
   private geminiService = inject(GeminiService);
-  aiSuggestedSkills = signal<string[]>([]);
+  aiSuggestedSkills = signal<SkillSuggestion[]>([]);
   isLoadingSuggestions = signal(false);
+  userInterests = signal('');
 
   constructor() {
     effect(() => {
         const currentPlans = this.plans();
-        if (currentPlans.length > 0) {
+        // Load initial suggestions based on record if available, even without user interest input
+        if (currentPlans.length > 0 && this.aiSuggestedSkills().length === 0) {
             this.loadHolisticSuggestions(currentPlans);
         }
     });
   }
 
-  async loadHolisticSuggestions(plans: LearningPlan[]) {
+  async loadHolisticSuggestions(plans: LearningPlan[], interests: string = '') {
       this.isLoadingSuggestions.set(true);
       // Fallback first
-      const defaultSuggestions = [
-        'Mindfulness and Meditation',
-        'Basics of Graphic Design',
-        'Introduction to Coding',
-        'Creative Writing',
-        'Personal Finance 101'
+      const defaultSuggestions: SkillSuggestion[] = [
+        { skill: 'Mindfulness and Meditation', reason: 'Great for focus and stress management.', category: 'Life Skill' },
+        { skill: 'Basics of Graphic Design', reason: 'Useful for personal projects and presentations.', category: 'Creative' },
+        { skill: 'Introduction to Coding', reason: 'A foundational skill for the modern world.', category: 'Technology' },
       ];
       this.aiSuggestedSkills.set(defaultSuggestions);
       
       // Then try to fetch AI suggestions
-      const newSuggestions = await this.geminiService.getHolisticSuggestions(plans);
+      const newSuggestions = await this.geminiService.getHolisticSuggestions(plans, interests);
       if (newSuggestions && newSuggestions.length > 0) {
           this.aiSuggestedSkills.set(newSuggestions);
       }
       this.isLoadingSuggestions.set(false);
+  }
+  
+  refreshSuggestions() {
+      this.loadHolisticSuggestions(this.plans(), this.userInterests());
   }
 
   calculateProgress(plan: LearningPlan): number {
@@ -95,5 +100,7 @@ export class HomeComponent {
 
   onSuggestionClick(skill: string): void {
     this.startNewSkill.emit();
+    // Ideally we would pass this skill to the selection component, but for now just opening it is good.
+    // The selection component allows typing, so the user can just type it in.
   }
 }

@@ -1,7 +1,7 @@
 
 import { Injectable, signal } from '@angular/core';
 import { GoogleGenAI, Type } from '@google/genai';
-import { PlanConfig, LearningPlan, ChatMessage, GroundingChunk, Resource, LearningFramework, AssessmentMessage, QuizQuestion, Goal, UserSchedule } from '../models';
+import { PlanConfig, LearningPlan, ChatMessage, GroundingChunk, Resource, LearningFramework, AssessmentMessage, QuizQuestion, Goal, UserSchedule, SkillSuggestion } from '../models';
 
 @Injectable({ providedIn: 'root' })
 export class GeminiService {
@@ -356,10 +356,10 @@ export class GeminiService {
       }
   }
 
-  async getHolisticSuggestions(plans: LearningPlan[]): Promise<string[]> {
+  async getHolisticSuggestions(plans: LearningPlan[], currentInterests: string = ''): Promise<SkillSuggestion[]> {
     if (!this.checkConfig()) return [];
     this.error.set(null);
-    if (plans.length === 0) return [];
+    if (plans.length === 0 && !currentInterests) return [];
     
     try {
         // Construct a richer user profile for the AI including completion status
@@ -382,13 +382,24 @@ export class GeminiService {
         Here is the user's current learning portfolio with their progress: 
         ${JSON.stringify(userProfile)}
         
+        The user has also expressed the following current interests: "${currentInterests}"
+        
         Analyze their interests, current skill levels, and actual progress.
+        - If the user provided specific interests, prioritize those topics.
         - If they are nearing completion of a skill (e.g. > 80%), suggest an ADVANCED next step or a specialization.
         - If they are just starting multiple creative skills, suggest something complementary in that domain.
-        - Suggest 3 NEW complementary skills.
-        - Suggest 2 ADVANCED specializations based on their strongest/most completed skills.
+        - Suggest NEW complementary skills.
+        - Suggest ADVANCED specializations based on their strongest/most completed skills.
         
-        Provide a total of 5 unique, exciting suggestions as a simple JSON array of strings.
+        Based on this record, recommend 6 unique skills to learn.
+        For each recommendation, explain WHY based on their history or specified interests (e.g. "Because you mastered Python...", "Since you are interested in Design...").
+        
+        Return a JSON array of objects with this structure:
+        {
+          "skill": "Name of the skill",
+          "reason": "Short explanation of why it fits their profile",
+          "category": "Technology" | "Creative" | "Business" | "Life Skill" | "Language" | "Other"
+        }
         `;
         
         const response = await this.genAI!.models.generateContent({
@@ -396,7 +407,16 @@ export class GeminiService {
             contents: prompt,
             config: {
                 responseMimeType: 'application/json',
-                responseSchema: { type: Type.ARRAY, items: { type: Type.STRING } }
+                responseSchema: {
+                  type: Type.ARRAY,
+                  items: {
+                      type: Type.OBJECT, properties: {
+                          skill: { type: Type.STRING },
+                          reason: { type: Type.STRING },
+                          category: { type: Type.STRING }
+                      }
+                  }
+              }
             }
         });
         return JSON.parse(response.text.trim());

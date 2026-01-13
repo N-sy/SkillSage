@@ -83,21 +83,52 @@
 
   <!-- Suggested Skills Section -->
   <div>
-    <div class="flex items-center gap-3">
-        <h2 class="text-3xl font-bold tracking-tight text-dark dark:text-light sm:text-4xl">
-        <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">Discover</span> What's Next
-        </h2>
-        @if(isLoadingSuggestions()) {
-            <div class="spinner w-6 h-6 border-2"></div>
-        }
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+            <h2 class="text-3xl font-bold tracking-tight text-dark dark:text-light sm:text-4xl">
+            <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">Discover</span> What's Next
+            </h2>
+            <p class="mt-2 text-lg text-medium">AI recommendations based on your history and interests.</p>
+        </div>
+        
+        <div class="flex gap-2 w-full sm:w-auto">
+            <input 
+                type="text" 
+                [ngModel]="userInterests()"
+                (ngModelChange)="userInterests.set($event)"
+                (keyup.enter)="refreshSuggestions()"
+                placeholder="Any specific interests?" 
+                class="flex-grow sm:w-64 px-4 py-2 bg-white dark:bg-dark-card border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-primary focus:outline-none"
+            >
+            <button 
+                (click)="refreshSuggestions()" 
+                [disabled]="isLoadingSuggestions()"
+                class="px-4 py-2 bg-primary text-white font-semibold rounded-xl hover:bg-blue-600 disabled:bg-gray-400 transition-colors"
+            >
+                @if(isLoadingSuggestions()) {
+                    <div class="spinner w-5 h-5 border-2 border-white border-t-transparent rounded-full"></div>
+                } @else {
+                    Refresh
+                }
+            </button>
+        </div>
     </div>
-    <p class="mt-4 text-lg text-medium">Based on your record, you might enjoy learning these skills.</p>
-    <div class="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-       @for (skill of aiSuggestedSkills(); track skill) {
-        <button (click)="onSuggestionClick(skill)" class="group p-6 bg-white dark:bg-dark-card rounded-3xl shadow-soft hover:shadow-soft-lg hover:-translate-y-1 transition-all duration-300 text-left">
-          <h3 class="text-xl font-semibold text-dark dark:text-light">{{ skill }}</h3>
-          <p class="mt-2 text-primary font-medium group-hover:underline">Explore Skill →</p>
-        </button>
+
+    <div class="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      @for (suggestion of aiSuggestedSkills(); track suggestion.skill) {
+        <div (click)="onSuggestionClick(suggestion.skill)" class="bg-white dark:bg-dark-card p-6 rounded-3xl shadow-soft hover:shadow-soft-lg hover:-translate-y-1 transition-all cursor-pointer flex flex-col h-full border border-transparent hover:border-primary/20">
+          <div class="flex justify-between items-start mb-3">
+             <span class="inline-block px-3 py-1 text-xs font-bold rounded-full bg-gray-100 dark:bg-gray-700 text-medium">
+                {{ suggestion.category }}
+             </span>
+             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+          </div>
+          <h3 class="text-xl font-bold text-dark dark:text-light mb-2">{{ suggestion.skill }}</h3>
+          <p class="text-sm text-medium flex-grow">{{ suggestion.reason }}</p>
+          <div class="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700/50 flex items-center text-primary font-semibold text-sm group">
+             Start Learning <span class="ml-1 group-hover:translate-x-1 transition-transform">→</span>
+          </div>
+        </div>
       }
     </div>
   </div>
