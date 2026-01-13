@@ -1,0 +1,104 @@
+
+<div class="space-y-16">
+  <!-- Current Skills Section -->
+  <div>
+    <h2 class="text-3xl font-bold tracking-tight text-dark dark:text-light sm:text-4xl">Your Learning Journeys</h2>
+    @if (plans().length > 0) {
+      <p class="mt-4 text-lg text-medium">Continue where you left off or start a new adventure.</p>
+      <div class="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        @for (plan of plans(); track plan.id) {
+          <div (click)="onContinue(plan.id)" class="group relative p-6 bg-white dark:bg-dark-card rounded-3xl shadow-soft hover:shadow-soft-lg hover:-translate-y-1 transition-all duration-300 text-left cursor-pointer">
+            
+            @if (planPendingDeletion() === plan.id) {
+              <div class="absolute inset-0 bg-red-500/90 rounded-3xl flex flex-col items-center justify-center gap-2 z-20 transition-opacity">
+                <p class="text-white font-bold">Are you sure?</p>
+                <div class="flex gap-2">
+                    <button (click)="onConfirmDelete($event, plan.id)" class="px-3 py-1 bg-white text-red-600 font-semibold rounded-full text-sm">Yes, Delete</button>
+                    <button (click)="onCancelDelete($event)" class="px-3 py-1 bg-transparent text-white font-semibold rounded-full text-sm border border-white/50">Cancel</button>
+                </div>
+              </div>
+            }
+
+            <button (click)="onDeleteRequest($event, plan.id)" class="absolute top-3 right-3 z-10 p-2 text-gray-400 hover:text-red-500 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors" title="Delete Plan">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+            <h3 class="text-xl font-semibold text-dark dark:text-light pr-6">{{ plan.skill }}</h3>
+            <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mt-4">
+              <div class="bg-primary h-2 rounded-full" [style.width.%]="calculateProgress(plan)"></div>
+            </div>
+            <p class="text-sm text-medium mt-2">{{ calculateProgress(plan) }}% Complete</p>
+          </div>
+        }
+         <button (click)="onStartNew()" class="group p-6 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-3xl hover:border-primary hover:bg-white dark:hover:bg-dark-card flex flex-col items-center justify-center transition-all">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-gray-400 group-hover:text-primary transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+          <p class="mt-2 text-lg font-semibold text-gray-500 group-hover:text-primary transition-colors">Learn a New Skill</p>
+        </button>
+      </div>
+    } @else {
+      <div class="mt-8 text-center p-12 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-3xl">
+        <p class="text-lg text-medium">You haven't started any learning plans yet.</p>
+        <button (click)="onStartNew()" class="mt-4 px-6 py-3 bg-primary text-white font-semibold rounded-2xl shadow-soft hover:bg-blue-600 transition-colors">
+          Start Your First Journey
+        </button>
+      </div>
+    }
+  </div>
+
+  <!-- Home AI Sage -->
+  @if (plans().length > 0) {
+    <div>
+        <h2 class="text-3xl font-bold tracking-tight text-dark dark:text-light sm:text-4xl">
+            Your Personal <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">Learning Advisor</span>
+        </h2>
+        <p class="mt-4 text-lg text-medium">Ask questions about your progress and get personalized recommendations for what to learn next.</p>
+        <div class="mt-8">
+          <app-home-sage [plans]="plans()"></app-home-sage>
+        </div>
+    </div>
+  }
+
+  <!-- Systems Generator Section (Collapsible) -->
+  <div class="bg-white dark:bg-dark-card rounded-3xl shadow-soft-lg overflow-hidden">
+      <button (click)="isSystemsCoachExpanded.set(!isSystemsCoachExpanded())" class="w-full p-6 text-left">
+        <div class="flex justify-between items-center">
+          <div>
+              <h2 class="text-2xl font-bold tracking-tight text-dark dark:text-light sm:text-3xl">
+                Build a <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">Winning System</span>
+              </h2>
+              <p class="mt-2 text-lg text-medium">Create a sustainable routine for any skill or habit.</p>
+          </div>
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-medium transition-transform" [class.rotate-180]="isSystemsCoachExpanded()" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </div>
+      </button>
+
+      @if(isSystemsCoachExpanded()) {
+        <div class="px-6 pb-6 border-t border-gray-200 dark:border-gray-700/50">
+          <app-systems-generator></app-systems-generator>
+        </div>
+      }
+  </div>
+
+
+  <!-- Suggested Skills Section -->
+  <div>
+    <div class="flex items-center gap-3">
+        <h2 class="text-3xl font-bold tracking-tight text-dark dark:text-light sm:text-4xl">
+        <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">Discover</span> What's Next
+        </h2>
+        @if(isLoadingSuggestions()) {
+            <div class="spinner w-6 h-6 border-2"></div>
+        }
+    </div>
+    <p class="mt-4 text-lg text-medium">Based on your record, you might enjoy learning these skills.</p>
+    <div class="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+       @for (skill of aiSuggestedSkills(); track skill) {
+        <button (click)="onSuggestionClick(skill)" class="group p-6 bg-white dark:bg-dark-card rounded-3xl shadow-soft hover:shadow-soft-lg hover:-translate-y-1 transition-all duration-300 text-left">
+          <h3 class="text-xl font-semibold text-dark dark:text-light">{{ skill }}</h3>
+          <p class="mt-2 text-primary font-medium group-hover:underline">Explore Skill →</p>
+        </button>
+      }
+    </div>
+  </div>
+</div>

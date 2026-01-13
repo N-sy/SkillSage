@@ -1,0 +1,7 @@
+{
+  "name": "Skill Sage",
+  "description": "Your personal AI-powered guide to mastering new skills. Create personalized learning plans, track your progress with daily logs, and get answers from an AI sage.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}

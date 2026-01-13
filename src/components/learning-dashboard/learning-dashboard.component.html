@@ -1,0 +1,304 @@
+
+@if (planState(); as plan) {
+  <div class="space-y-8">
+    <!-- Header -->
+    <div class="bg-white dark:bg-dark-card p-6 rounded-3xl shadow-soft-lg">
+      <h2 class="text-3xl font-bold text-dark dark:text-light">Your Path to Mastering <span class="text-primary">{{ plan.skill }}</span></h2>
+      <div class="mt-4 flex items-center justify-between">
+        <div class="text-medium w-3/4">
+          <p class="text-sm font-medium">Overall Progress</p>
+          <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 mt-1">
+            <div class="bg-primary h-2.5 rounded-full" [style.width.%]="progress"></div>
+          </div>
+        </div>
+        <div class="text-center">
+          <p class="text-3xl font-bold text-secondary">{{ streak() }}</p>
+          <p class="text-sm text-medium">Day Streak</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab Navigation -->
+    <div class="border-b border-gray-200 dark:border-gray-700">
+      <nav class="flex space-x-2 sm:space-x-4" aria-label="Tabs">
+        <button (click)="activeTab.set('plan')" [class.border-primary]="activeTab() === 'plan'" [class.text-primary]="activeTab() === 'plan'" [class.border-transparent]="activeTab() !== 'plan'" class="whitespace-nowrap pb-3 px-1 border-b-2 font-medium text-lg">Learning Plan</button>
+        <button (click)="activeTab.set('log')" [class.border-primary]="activeTab() === 'log'" [class.text-primary]="activeTab() === 'log'" [class.border-transparent]="activeTab() !== 'log'" class="whitespace-nowrap pb-3 px-1 border-b-2 font-medium text-lg">Daily Log</button>
+        <button (click)="activeTab.set('resources')" [class.border-primary]="activeTab() === 'resources'" [class.text-primary]="activeTab() === 'resources'" [class.border-transparent]="activeTab() !== 'resources'" class="whitespace-nowrap pb-3 px-1 border-b-2 font-medium text-lg">Resources</button>
+        <button (click)="activeTab.set('sage')" [class.border-primary]="activeTab() === 'sage'" [class.text-primary]="activeTab() === 'sage'" [class.border-transparent]="activeTab() !== 'sage'" class="whitespace-nowrap pb-3 px-1 border-b-2 font-medium text-lg">AI Sage</button>
+        <button (click)="activeTab.set('adapt')" [class.border-primary]="activeTab() === 'adapt'" [class.text-primary]="activeTab() === 'adapt'" [class.border-transparent]="activeTab() !== 'adapt'" class="whitespace-nowrap pb-3 px-1 border-b-2 font-medium text-lg">Adapt</button>
+      </nav>
+    </div>
+
+    <!-- Tab Content -->
+    @switch (activeTab()) {
+      @case ('plan') {
+        <div class="bg-white dark:bg-dark-card p-6 rounded-3xl shadow-soft-lg">
+          <div class="flex flex-wrap gap-4 justify-between items-center mb-6">
+              <div class="w-full sm:w-auto overflow-x-auto pb-2">
+                <nav class="flex space-x-2" aria-label="Modules">
+                  @for(module of plan.modules; track module.week; let i = $index) {
+                    <button (click)="activeModule.set(i)" 
+                            [class.bg-primary]="activeModule() === i" 
+                            [class.text-white]="activeModule() === i" 
+                            [class.bg-gray-100]="activeModule() !== i" 
+                            [class.dark:bg-gray-700]="activeModule() !== i" 
+                            class="py-2 px-4 rounded-full font-medium text-sm transition-colors text-center"
+                            [class.whitespace-nowrap]="!isLongTermPlan() || i < 4">
+                        @if(isLongTermPlan() && i >= 4) {
+                            {{ module.title }}
+                        } @else {
+                            Week {{ module.week }}
+                        }
+                    </button>
+                  }
+                </nav>
+              </div>
+              <div class="flex gap-2">
+                  <button (click)="showLevelPreview()" class="px-4 py-2 text-sm font-semibold text-primary bg-primary/10 hover:bg-primary/20 rounded-full">Level Preview</button>
+                  <button (click)="generateQuiz()" class="px-4 py-2 text-sm font-semibold text-secondary bg-secondary/10 hover:bg-secondary/20 rounded-full">Test Your Level</button>
+              </div>
+          </div>
+          @if (plan.modules[activeModule()]; as currentModule) {
+            <div class="mb-6">
+              <h3 class="text-2xl font-bold text-dark dark:text-light">{{ currentModule.title }}</h3>
+            </div>
+            <div class="space-y-6">
+              @for (day of currentModule.dailyTasks; track day.day; let dayIdx = $index) {
+                <div>
+                  <h4 class="text-lg font-semibold mb-2 text-dark dark:text-light">Day {{ day.day }}</h4>
+                  <ul class="space-y-3">
+                    @for (task of day.tasks; track task.title; let taskIdx = $index) {
+                      <li class="p-3 rounded-2xl" [class.bg-green-500/10]="task.completed" [class.dark:bg-green-500/10]="task.completed" [class.bg-gray-50]="!task.completed" [class.dark:bg-gray-700/50]="!task.completed">
+                        <div (click)="toggleTask(activeModule(), dayIdx, taskIdx)" class="flex items-start cursor-pointer">
+                          <div class="w-6 h-6 rounded-full border-2 flex-shrink-0 mr-4 mt-1 flex items-center justify-center" [class.border-secondary]="task.completed" [class.bg-secondary]="task.completed" [class.border-gray-400]="!task.completed">
+                            @if(task.completed) { <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> }
+                          </div>
+                          <div>
+                            <p class="font-medium" [class.line-through]="task.completed" [class.text-gray-500]="task.completed">{{ task.title }}</p>
+                            <p class="text-sm text-medium">{{ task.description }}</p>
+                          </div>
+                        </div>
+                        @if (task.resources && task.resources.length > 0) {
+                          <div class="pl-10 mt-2 space-y-1 border-l-2 border-gray-200 dark:border-gray-600 ml-3">
+                            @for (resource of task.resources; track resource.uri) {
+                              <a [href]="resource.uri" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 text-sm text-primary hover:underline">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg>
+                                <span>{{ resource.title }}</span>
+                              </a>
+                            }
+                          </div>
+                        }
+                      </li>
+                    }
+                  </ul>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+      @case ('log') {
+        <div class="bg-white dark:bg-dark-card p-6 rounded-3xl shadow-soft-lg">
+          <h3 class="text-2xl font-semibold mb-4">Daily Learning Log</h3>
+          
+          <!-- New Log Form -->
+          <div class="mb-8 p-4 border border-gray-200 dark:border-gray-700 rounded-2xl">
+              <textarea 
+                [ngModel]="currentLogNote()"
+                (ngModelChange)="currentLogNote.set($event)"
+                rows="3"
+                placeholder="What did you learn or practice today?"
+                class="w-full px-3 py-2 bg-light dark:bg-dark-bg border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-primary focus:outline-none resize-none"
+              ></textarea>
+              @if (logAttachment()) {
+                <div class="mt-2 p-2 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-between">
+                    <span class="text-sm text-medium truncate">{{ logAttachment()!.name }}</span>
+                    <button (click)="removeLogAttachment()" class="p-1 text-gray-500 hover:text-red-500 rounded-full">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                </div>
+              }
+              <div class="mt-3 flex justify-between items-center">
+                  <label class="p-2 bg-gray-200 dark:bg-gray-700 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 cursor-pointer transition-colors" title="Attach media">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>
+                      <input type="file" class="hidden" (change)="onLogFileSelected($event)" accept="image/*,video/*,audio/*">
+                  </label>
+                  <button (click)="addLog()" [disabled]="!currentLogNote().trim() && !logAttachment()" class="px-5 py-2 bg-primary text-white font-semibold rounded-xl disabled:bg-gray-400">Save Log</button>
+              </div>
+          </div>
+
+          <!-- Log History -->
+          <div>
+              <div class="flex items-center justify-between mb-4">
+                  <h4 class="text-lg font-semibold">History</h4>
+                  <div class="flex items-center gap-2 p-1 bg-gray-100 dark:bg-gray-700 rounded-full">
+                      <button (click)="logGrouping.set('day')" [class.bg-white]="logGrouping() === 'day'" [class.dark:bg-gray-900]="logGrouping() === 'day'" class="px-3 py-1 text-sm font-medium rounded-full">Day</button>
+                      <button (click)="logGrouping.set('week')" [class.bg-white]="logGrouping() === 'week'" [class.dark:bg-gray-900]="logGrouping() === 'week'" class="px-3 py-1 text-sm font-medium rounded-full">Week</button>
+                      <button (click)="logGrouping.set('month')" [class.bg-white]="logGrouping() === 'month'" [class.dark:bg-gray-900]="logGrouping() === 'month'" class="px-3 py-1 text-sm font-medium rounded-full">Month</button>
+                      <button (click)="logGrouping.set('year')" [class.bg-white]="logGrouping() === 'year'" [class.dark:bg-gray-900]="logGrouping() === 'year'" class="px-3 py-1 text-sm font-medium rounded-full">Year</button>
+                  </div>
+              </div>
+
+              <div class="space-y-6 max-h-[60vh] overflow-y-auto pr-2">
+                @if (groupedLogsKeys().length > 0) {
+                    @for (key of groupedLogsKeys(); track key) {
+                        <div class="relative">
+                            <h5 class="text-sm font-bold uppercase text-medium mb-2 pl-4">{{ key }}</h5>
+                            <div class="border-l-2 border-primary/20 space-y-4">
+                                @for (log of groupedLogs()[key]; track log.id) {
+                                    <div class="pl-8 relative">
+                                        <div class="absolute left-0 top-1 w-4 h-4 bg-white dark:bg-dark-card border-2 border-primary rounded-full -translate-x-1/2"></div>
+                                        <div class="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+                                            <p class="text-sm text-medium font-semibold">{{ getLogTime(log.date) }}</p>
+                                            <p class="mt-1 whitespace-pre-wrap">{{ log.notes }}</p>
+                                            @if(log.attachment) {
+                                              <div class="mt-2">
+                                                  @if(log.attachment.mimeType.startsWith('image/')) {
+                                                      <img [src]="'data:' + log.attachment.mimeType + ';base64,' + log.attachment.data" [alt]="log.attachment.name" class="rounded-lg max-h-48">
+                                                  }
+                                                  @if(log.attachment.mimeType.startsWith('audio/')) {
+                                                      <audio controls [src]="'data:' + log.attachment.mimeType + ';base64,' + log.attachment.data" class="w-full mt-1"></audio>
+                                                  }
+                                                  @if(log.attachment.mimeType.startsWith('video/')) {
+                                                      <video controls [src]="'data:' + log.attachment.mimeType + ';base64,' + log.attachment.data" class="rounded-lg max-h-48 mt-1"></video>
+                                                  }
+                                              </div>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                } @else {
+                    <div class="text-center py-10">
+                        <p class="text-medium">No logs yet. Add your first entry above!</p>
+                    </div>
+                }
+              </div>
+          </div>
+
+        </div>
+      }
+      @case ('resources') {
+        <div class="bg-white dark:bg-dark-card p-6 rounded-3xl shadow-soft-lg">
+            <h3 class="text-2xl font-semibold mb-4">Resource Hub</h3>
+            @if (isLoadingResources()) { <p class="text-medium">Finding resources...</p> } 
+            @else {
+              <ul class="space-y-3">
+                @for(resource of allResources(); track resource.uri) {
+                  <li>
+                    <a [href]="resource.uri" target="_blank" rel="noopener noreferrer" class="block p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                      <p class="font-medium text-primary truncate">{{ resource.title }}</p>
+                      <p class="text-xs text-medium truncate">{{ resource.uri }}</p>
+                    </a>
+                  </li>
+                }
+                @if (allResources().length === 0) { <p class="text-medium text-sm">No external resources found. Ask the Sage for help!</p> }
+              </ul>
+            }
+        </div>
+      }
+      @case ('sage') { <app-ai-sage [skill]="plan.skill"></app-ai-sage> }
+      @case ('adapt') {
+        <div class="bg-white dark:bg-dark-card p-6 rounded-3xl shadow-soft-lg">
+          <h3 class="text-2xl font-semibold mb-2">Adapt Your Plan</h3>
+          <p class="text-medium mb-4">Give the AI Sage new instructions to regenerate your learning plan. This will replace your current modules and tasks.</p>
+          
+          <div class="space-y-4">
+              <textarea 
+                [ngModel]="regenerationInstruction()"
+                (ngModelChange)="regenerationInstruction.set($event)"
+                rows="4"
+                placeholder="e.g., 'Make the plan more focused on practical projects.' or 'Add more content about backend development.'"
+                class="w-full px-3 py-2 bg-light dark:bg-dark-bg border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-primary focus:outline-none resize-y"
+              ></textarea>
+
+              <div>
+                <h4 class="text-md font-semibold text-dark dark:text-light">Add Resources (Optional)</h4>
+                <p class="text-sm text-medium mt-1">Upload a .txt file to provide additional context for the regeneration.</p>
+                <div class="mt-2">
+                    @if (regenerationResourceFileName()) {
+                    <div class="p-3 bg-gray-100 dark:bg-gray-700 rounded-xl flex items-center justify-between">
+                        <div class="flex items-center gap-2 overflow-hidden">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-medium flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                        <span class="text-sm font-medium truncate">{{ regenerationResourceFileName() }}</span>
+                        </div>
+                        <button (click)="removeRegenResource()" class="p-1 text-gray-500 hover:text-red-500 rounded-full flex-shrink-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                        </button>
+                    </div>
+                    } @else {
+                    <label class="w-full flex justify-center px-6 py-6 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl cursor-pointer hover:border-primary hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                        <div class="text-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
+                        <p class="mt-2 text-sm font-semibold text-dark dark:text-light">Click to upload a .txt file</p>
+                        </div>
+                        <input type="file" class="hidden" (change)="onRegenFileSelected($event)" accept=".txt,text/plain">
+                    </label>
+                    }
+                </div>
+              </div>
+
+              <button (click)="regeneratePlan()" [disabled]="!regenerationInstruction().trim() || isRegenerating()" class="w-full flex items-center justify-center gap-2 py-3 bg-primary text-white font-bold rounded-2xl shadow-soft hover:bg-blue-600 disabled:bg-gray-400">
+                @if (isRegenerating()) {
+                  <div class="spinner w-5 h-5 rounded-full border-2 border-white border-t-transparent"></div>
+                  <span>Regenerating...</span>
+                } @else {
+                  <span>Regenerate Plan</span>
+                }
+              </button>
+          </div>
+        </div>
+      }
+    }
+  </div>
+
+  <!-- Modals -->
+  @if (levelPreview()) {
+    <div class="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" (click)="levelPreview.set(null)">
+      <div class="bg-white dark:bg-dark-card p-8 rounded-3xl shadow-soft-lg max-w-lg w-full" (click)="$event.stopPropagation()">
+        <h3 class="text-2xl font-bold mb-4">Level Preview ✨</h3>
+        <p class="text-medium">{{ levelPreview() }}</p>
+        <button (click)="levelPreview.set(null)" class="mt-6 w-full py-3 bg-primary text-white font-bold rounded-2xl">Close</button>
+      </div>
+    </div>
+  }
+  
+  @if (quiz()) {
+    <div class="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" (click)="quiz.set(null)">
+      <div class="bg-white dark:bg-dark-card p-8 rounded-3xl shadow-soft-lg max-w-xl w-full flex flex-col" (click)="$event.stopPropagation()">
+        <h3 class="text-2xl font-bold mb-6">Test Your Knowledge</h3>
+        @if(quiz()!.length === 0) {
+            <div class="spinner w-8 h-8 mx-auto"></div><p class="text-center mt-2">Generating quiz...</p>
+        } @else {
+            @if(quizScore() === null) {
+              <div class="flex-grow overflow-y-auto pr-2" style="max-height: 60vh;">
+                <div class="space-y-6">
+                    @for(q of quiz(); track q; let i = $index) {
+                        <div>
+                            <p class="font-semibold">{{ i + 1 }}. {{ q.question }}</p>
+                            <div class="mt-2 space-y-2">
+                                @for(opt of q.options; track opt) {
+                                    <button (click)="selectAnswer(i, opt)" [class.ring-2]="quizAnswers()[i] === opt" [class.ring-primary]="quizAnswers()[i] === opt" class="w-full text-left p-3 rounded-xl bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">{{ opt }}</button>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+              </div>
+              <button (click)="submitQuiz()" class="mt-6 w-full py-3 bg-primary text-white font-bold rounded-2xl flex-shrink-0">Submit</button>
+            } @else {
+                <div class="text-center">
+                    <h4 class="text-xl font-semibold">Your Score:</h4>
+                    <p class="text-5xl font-bold my-4" [class.text-green-500]="quizScore()! >= 75" [class.text-red-500]="quizScore()! < 75">{{ quizScore() }}%</p>
+                    <p class="text-medium">{{ quizScore()! >= 75 ? "Excellent work! You're ready to move on." : "Good effort! Review the material and try again." }}</p>
+                    <button (click)="quiz.set(null)" class="mt-6 w-full py-3 bg-primary text-white font-bold rounded-2xl">Close</button>
+                </div>
+            }
+        }
+      </div>
+    </div>
+  }
+
+}

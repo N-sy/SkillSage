@@ -1,0 +1,61 @@
+
+<div class="bg-white dark:bg-dark-card p-6 rounded-3xl shadow-soft-lg h-full flex flex-col" style="min-height: 500px;">
+  <h3 class="text-2xl font-semibold mb-4 text-dark dark:text-light">Talk to your Advisor</h3>
+  
+  <div class="flex-grow overflow-y-auto mb-4 pr-2 space-y-4 h-96">
+    @for (message of messages(); track $index) {
+      <div 
+        class="flex"
+        [class.justify-end]="message.role === 'user'"
+        [class.justify-start]="message.role === 'model'"
+      >
+        <div 
+          class="max-w-lg px-5 py-3 rounded-2xl"
+          [class.bg-primary]="message.role === 'user'"
+          [class.text-white]="message.role === 'user'"
+          [class.bg-gray-200]="message.role === 'model'"
+          [class.dark:bg-gray-700]="message.role === 'model'"
+          [class.text-dark]="message.role === 'model'"
+          [class.dark:text-light]="message.role === 'model'"
+        >
+          <p class="text-base whitespace-pre-wrap">{{ message.text }}</p>
+        </div>
+      </div>
+    }
+    @if(isLoading()) {
+      <div class="flex justify-start">
+        <div class="max-w-lg px-5 py-3 rounded-2xl bg-gray-200 dark:bg-gray-700">
+            <div class="flex items-center gap-2">
+                <div class="w-2 h-2 bg-medium rounded-full animate-bounce"></div>
+                <div class="w-2 h-2 bg-medium rounded-full animate-bounce [animation-delay:0.2s]"></div>
+                <div class="w-2 h-2 bg-medium rounded-full animate-bounce [animation-delay:0.4s]"></div>
+            </div>
+        </div>
+      </div>
+    }
+  </div>
+
+  <div class="relative">
+    <div class="flex gap-3">
+        <input 
+          type="text" 
+          [ngModel]="currentMessage()"
+          (ngModelChange)="currentMessage.set($event)"
+          (keyup.enter)="sendMessage()"
+          [disabled]="isLoading()"
+          placeholder="Ask about your progress or for suggestions..."
+          class="flex-grow w-full px-4 py-3 bg-light dark:bg-dark-bg border border-gray-300 dark:border-gray-600 rounded-2xl focus:ring-2 focus:ring-primary focus:outline-none"
+        />
+        <button
+          (click)="sendMessage()"
+          [disabled]="isLoading() || !currentMessage().trim()"
+          class="p-3 bg-primary text-white rounded-2xl shadow-soft hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+          title="Send"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+          </svg>
+        </button>
+    </div>
+  </div>
+</div>

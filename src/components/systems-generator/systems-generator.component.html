@@ -1,0 +1,142 @@
+
+<div class="bg-white dark:bg-dark-card p-6 rounded-3xl shadow-soft-lg h-full flex flex-col" style="min-height: 500px;">
+  
+  @if(viewState() === 'chat') {
+    <div class="flex-grow flex flex-col">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-xl font-semibold text-dark dark:text-light">Systems Coach</h3>
+        <div class="flex items-center gap-2">
+          <button (click)="editSchedule()" title="Manage My Schedule" class="px-3 py-1 text-xs font-bold text-medium bg-gray-100 dark:bg-gray-700 hover:bg-primary/20 hover:text-primary rounded-full transition-colors">
+            Manage Schedule
+          </button>
+          <button (click)="resetConversation()" title="Reset Conversation" class="p-2 text-gray-400 hover:text-red-500 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h5M20 20v-5h-5M4 4l16 16" /></svg>
+          </button>
+        </div>
+      </div>
+      
+      <div class="flex-grow overflow-y-auto mb-4 pr-2 space-y-4 h-96">
+        @for (message of messages(); track $index) {
+          <div 
+            class="flex"
+            [class.justify-end]="message.role === 'user'"
+            [class.justify-start]="message.role === 'model'"
+          >
+            <div 
+              class="max-w-xl px-5 py-3 rounded-2xl"
+              [class.bg-primary]="message.role === 'user'"
+              [class.text-white]="message.role === 'user'"
+              [class.bg-gray-200]="message.role === 'model'"
+              [class.dark:bg-gray-700]="message.role === 'model'"
+              [class.text-dark]="message.role === 'model'"
+              [class.dark:text-light]="message.role === 'model'"
+            >
+              <p class="text-base whitespace-pre-wrap">{{ message.text }}</p>
+            </div>
+          </div>
+        }
+        @if(isLoading()) {
+          <div class="flex justify-start">
+            <div class="max-w-lg px-5 py-3 rounded-2xl bg-gray-200 dark:bg-gray-700">
+                <div class="flex items-center gap-2">
+                    <div class="w-2 h-2 bg-medium rounded-full animate-bounce"></div>
+                    <div class="w-2 h-2 bg-medium rounded-full animate-bounce [animation-delay:0.2s]"></div>
+                    <div class="w-2 h-2 bg-medium rounded-full animate-bounce [animation-delay:0.4s]"></div>
+                </div>
+            </div>
+          </div>
+        }
+      </div>
+
+        @if(isComplete()) {
+            <div class="text-center p-4 bg-green-100 dark:bg-green-900/50 rounded-2xl">
+                <p class="font-semibold text-green-800 dark:text-green-200">Your system is ready! Implement it and start making progress.</p>
+            </div>
+        } @else {
+            <div class="relative mt-auto">
+                @if (transcriptPreview()) {
+                    <div class="absolute bottom-full left-0 mb-2 w-full p-3 bg-gray-100 dark:bg-gray-800 rounded-xl shadow-md">
+                        <p class="italic text-medium">"{{ transcriptPreview() }}"</p>
+                        <div class="flex justify-end gap-2 mt-2">
+                            <button (click)="confirmVoiceInput()" class="px-3 py-1 text-sm bg-green-500 text-white font-semibold rounded-full">OK</button>
+                            <button (click)="cancelVoiceInput()" class="px-3 py-1 text-sm bg-gray-300 dark:bg-gray-600 font-semibold rounded-full">Cancel</button>
+                        </div>
+                    </div>
+                }
+                <div class="flex gap-3">
+                    <button 
+                        (click)="startVoiceInput()" 
+                        [disabled]="isLoading() || !!transcriptPreview()"
+                        class="p-3 rounded-2xl shadow-soft focus:outline-none transition-colors disabled:opacity-50"
+                        [class.bg-red-500]="isListening()"
+                        [class.text-white]="isListening()"
+                        [class.bg-gray-200]="!isListening()"
+                        [class.dark:bg-gray-700]="!isListening()"
+                        [class.hover:bg-gray-300]="!isListening()"
+                        [class.dark:hover:bg-gray-600]="!isListening()"
+                        title="Record voice"
+                    >
+                        @if (isListening()) {
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M12 3v4M19 3v4M5 10v4a7 7 0 0014 0v-4M8 21h8" /></svg>
+                        } @else {
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /></svg>
+                        }
+                    </button>
+                    <input 
+                        type="text" 
+                        [ngModel]="currentMessage()"
+                        (ngModelChange)="currentMessage.set($event)"
+                        (keyup.enter)="sendMessage()"
+                        [disabled]="isLoading() || !!transcriptPreview()"
+                        placeholder="e.g., 'I want to learn to code...'"
+                        class="flex-grow w-full px-4 py-2 bg-light dark:bg-dark-bg border border-gray-300 dark:border-gray-600 rounded-2xl focus:ring-2 focus:ring-primary focus:outline-none disabled:bg-gray-100 dark:disabled:bg-gray-800"
+                    />
+                    <button
+                        (click)="sendMessage()"
+                        [disabled]="isLoading() || !currentMessage().trim() || !!transcriptPreview()"
+                        class="p-3 bg-primary text-white rounded-2xl shadow-soft hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+                        title="Send"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        }
+    </div>
+  } @else {
+    <div class="flex-grow flex flex-col">
+      <h3 class="text-xl font-semibold text-dark dark:text-light mb-2">My Schedule & Habits</h3>
+      <p class="text-medium mb-6">Provide some details about your daily routine so the coach can create a more effective system for you. This information is saved locally and will be remembered.</p>
+      
+      <div class="space-y-4 flex-grow overflow-y-auto pr-2">
+        <div>
+          <label for="wakeUpTime" class="font-medium text-dark dark:text-light">What time do you usually wake up?</label>
+          <input id="wakeUpTime" type="text" [(ngModel)]="scheduleForm().wakeUpTime" placeholder="e.g., '7:00 AM on weekdays, 9:00 AM on weekends'" class="mt-1 w-full px-4 py-2 bg-light dark:bg-dark-bg border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-primary focus:outline-none">
+        </div>
+         <div>
+          <label for="sleepTime" class="font-medium text-dark dark:text-light">What time do you usually go to sleep?</label>
+          <input id="sleepTime" type="text" [(ngModel)]="scheduleForm().sleepTime" placeholder="e.g., 'Around 11:30 PM'" class="mt-1 w-full px-4 py-2 bg-light dark:bg-dark-bg border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-primary focus:outline-none">
+        </div>
+        <div>
+          <label for="workSchedule" class="font-medium text-dark dark:text-light">Describe your work/school schedule.</label>
+          <textarea id="workSchedule" rows="3" [(ngModel)]="scheduleForm().workSchedule" placeholder="e.g., 'I work 9-5, Monday to Friday. I have a 30-minute commute each way.'" class="mt-1 w-full px-4 py-2 bg-light dark:bg-dark-bg border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-primary focus:outline-none"></textarea>
+        </div>
+        <div>
+          <label for="existingHabits" class="font-medium text-dark dark:text-light">List some of your current daily habits.</label>
+          <textarea id="existingHabits" rows="3" [(ngModel)]="scheduleForm().existingHabits" placeholder="e.g., 'First thing I do is make coffee. I walk my dog after dinner. I watch TV before bed.'" class="mt-1 w-full px-4 py-2 bg-light dark:bg-dark-bg border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-primary focus:outline-none"></textarea>
+        </div>
+      </div>
+
+      <div class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row gap-3 items-center">
+        <button (click)="clearSchedule()" class="text-sm font-semibold text-red-600 dark:text-red-500 hover:underline">Reset My Schedule</button>
+        <div class="sm:ml-auto flex gap-3">
+          <button (click)="cancelEditSchedule()" class="px-6 py-2 bg-gray-200 dark:bg-gray-700 font-bold rounded-xl">Cancel</button>
+          <button (click)="saveSchedule()" class="px-6 py-2 bg-primary text-white font-bold rounded-xl">Save & Close</button>
+        </div>
+      </div>
+    </div>
+  }
+
+</div>

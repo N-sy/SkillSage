@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Skill Sage</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" type="image/x-icon" href="favicon.ico" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#007aff',
+            secondary: '#34c759',
+            light: '#f5f5f7',
+            dark: '#1d1d1f',
+            'dark-bg': '#000000',
+            'dark-card': '#1c1c1e',
+            medium: '#86868b',
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+          borderRadius: {
+            'xl': '1rem',
+            '2xl': '1.5rem',
+            '3xl': '2rem',
+            '4xl': '2.5rem',
+          },
+          boxShadow: {
+            'soft': '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05)',
+            'soft-lg': '0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -4px rgba(0, 0, 0, 0.05)',
+          }
+        },
+      },
+    }
+  </script>
+  <link rel="preconnect" href="https://rsms.me/">
+  <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .dark body { background-color: #000; color: #f5f5f7; }
+    .spinner {
+      border-color: #007aff;
+      border-top-color: transparent;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+<script type="importmap">
+{
+  "imports": {
+    "rxjs": "https://esm.sh/rxjs@^7.8.2?conditions=es2015",
+    "rxjs/operators": "https://esm.sh/rxjs@^7.8.2/operators?conditions=es2015",
+    "rxjs/ajax": "https://esm.sh/rxjs@^7.8.2/ajax?conditions=es2015",
+    "rxjs/webSocket": "https://esm.sh/rxjs@^7.8.2/webSocket?conditions=es2015",
+    "rxjs/testing": "https://esm.sh/rxjs@^7.8.2/testing?conditions=es2015",
+    "rxjs/fetch": "https://esm.sh/rxjs@^7.8.2/fetch?conditions=es2015",
+    "@google/genai": "https://next.esm.sh/@google/genai@^1.34.0?external=rxjs",
+    "@angular/platform-browser": "https://next.esm.sh/@angular/platform-browser@^21.0.6?external=rxjs",
+    "@angular/compiler": "https://next.esm.sh/@angular/compiler@^21.0.6?external=rxjs",
+    "@angular/forms": "https://next.esm.sh/@angular/forms@^21.0.6?external=rxjs",
+    "@angular/common": "https://next.esm.sh/@angular/common@^21.0.6?external=rxjs",
+    "@angular/common/http": "https://next.esm.sh/@angular/common@^21.0.6/http?external=rxjs",
+    "@angular/core": "https://next.esm.sh/@angular/core@^21.0.6?external=rxjs"
+  }
+}
+</script>
+</head>
+<body class="bg-light dark:bg-dark-bg text-dark dark:text-light">
+  <app-root></app-root>
+</body>
+</html>

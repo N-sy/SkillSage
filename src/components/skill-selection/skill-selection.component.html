@@ -1,0 +1,37 @@
+
+<div class="text-center max-w-3xl mx-auto">
+  <h2 class="text-3xl font-bold tracking-tight text-dark dark:text-light sm:text-4xl">What new skill will you master?</h2>
+  <p class="mt-4 text-lg text-medium">Choose from a popular skill or enter your own to begin your journey.</p>
+</div>
+
+<div class="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+  @for (skill of predefinedSkills; track skill) {
+    <button (click)="selectSkill(skill)" class="group p-6 bg-white dark:bg-dark-card rounded-3xl shadow-soft hover:shadow-soft-lg hover:-translate-y-1 transition-all duration-300 text-left">
+      <h3 class="text-xl font-semibold text-dark dark:text-light">{{ skill }}</h3>
+      <p class="mt-2 text-primary font-medium group-hover:underline">Start Learning →</p>
+    </button>
+  }
+</div>
+
+<div class="mt-12 border-t border-gray-200 dark:border-gray-700 pt-8">
+  <div class="max-w-xl mx-auto">
+    <h3 class="text-center text-xl font-semibold text-dark dark:text-light">Or define your own path...</h3>
+    <div class="mt-4 flex gap-3">
+      <input 
+        type="text" 
+        [ngModel]="customSkill()"
+        (ngModelChange)="customSkill.set($event)"
+        (keyup.enter)="submitCustomSkill()"
+        placeholder="e.g., 'Learn 3D Modeling in Blender'"
+        class="flex-grow w-full px-4 py-3 bg-white dark:bg-dark-bg border border-gray-300 dark:border-gray-600 rounded-2xl focus:ring-2 focus:ring-primary focus:outline-none"
+      >
+      <button 
+        (click)="submitCustomSkill()"
+        [disabled]="!customSkill().trim()"
+        class="px-6 py-3 bg-primary text-white font-semibold rounded-2xl shadow-soft hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+      >
+        Go
+      </button>
+    </div>
+  </div>
+</div>
