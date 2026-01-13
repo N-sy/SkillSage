@@ -6,7 +6,7 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [
       angular({
-        tsconfig: './tsconfig.json',
+        tsconfig: './tsconfig.app.json',
       }),
     ],
     define: {

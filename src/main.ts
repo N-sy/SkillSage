@@ -1,4 +1,4 @@
-import 'zone.js';
+
 import { bootstrapApplication } from '@angular/platform-browser';
 import { provideHttpClient } from '@angular/common/http';
 import { provideZonelessChangeDetection, enableProdMode } from '@angular/core';
