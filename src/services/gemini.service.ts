@@ -1,18 +1,24 @@
+
 import { Injectable, signal } from '@angular/core';
 import { GoogleGenAI, Type } from '@google/genai';
 import { PlanConfig, LearningPlan, ChatMessage, GroundingChunk, Resource, LearningFramework, AssessmentMessage, QuizQuestion, Goal, UserSchedule } from '../models';
 
 @Injectable({ providedIn: 'root' })
 export class GeminiService {
-  private genAI: GoogleGenAI;
+  private genAI: GoogleGenAI | undefined;
   public error = signal<string | null>(null);
 
   constructor() {
-    if (!process.env.API_KEY) {
-      this.error.set('API key for Gemini is not configured.');
-      throw new Error('API key for Gemini is not configured.');
+    // Check if the API key is available in the environment variables
+    // process.env.API_KEY is replaced by Vite at build time
+    const apiKey = process.env.API_KEY;
+    
+    if (apiKey) {
+      this.genAI = new GoogleGenAI({ apiKey: apiKey });
+    } else {
+      console.error('API Key is missing. The app will not function correctly until configured.');
+      this.error.set('MISSING_API_KEY');
     }
-    this.genAI = new GoogleGenAI({ apiKey: process.env.API_KEY });
   }
 
   private isLongTermGoal(goal?: string): boolean {
@@ -22,7 +28,17 @@ export class GeminiService {
     return longTermKeywords.some(keyword => lowerCaseGoal.includes(keyword));
   }
 
+  private checkConfig(): boolean {
+      if (!this.genAI) {
+          this.error.set('MISSING_API_KEY');
+          return false;
+      }
+      return true;
+  }
+
   async assessSkill(config: PlanConfig, conversation: AssessmentMessage[]): Promise<string> {
+    if (!this.checkConfig()) return "API Key missing. Please configure the app.";
+
     this.error.set(null);
     try {
         const lastUserMessage = conversation[conversation.length - 1];
@@ -63,7 +79,7 @@ export class GeminiService {
              parts.push({ text: basePrompt + `\nUser's latest message: ${lastUserMessage.text}` });
         }
 
-        const response = await this.genAI.models.generateContent({
+        const response = await this.genAI!.models.generateContent({
             model: 'gemini-2.5-flash',
             contents: { parts: parts }
         });
@@ -77,6 +93,8 @@ export class GeminiService {
   }
 
   async generateLearningPlan(config: PlanConfig, assessment: string): Promise<Omit<LearningPlan, 'suggestedSkills' | 'id' | 'framework' | 'assessmentSummary' | 'creationDate'> | null> {
+    if (!this.checkConfig()) return null;
+    
     this.error.set(null);
     let rawResponseText = '';
 
@@ -154,7 +172,7 @@ export class GeminiService {
         The response must be a JSON object that strictly adheres to the provided schema.
         IMPORTANT: The "skill" property in the JSON response must contain ONLY the original skill name: '${config.skill}'. Do not add any other descriptive text, summary, or extraneous information to the "skill" property. All curriculum details must be within the "modules" array.
       `;
-      const response = await this.genAI.models.generateContent({
+      const response = await this.genAI!.models.generateContent({
         model: 'gemini-2.5-flash', contents: prompt,
         config: {
             responseMimeType: 'application/json',
@@ -200,6 +218,8 @@ export class GeminiService {
   }
 
   async regeneratePlan(plan: LearningPlan, instruction: string, customResources?: string): Promise<Pick<LearningPlan, 'skill' | 'modules'> | null> {
+    if (!this.checkConfig()) return null;
+    
     this.error.set(null);
     let rawResponseText = '';
 
@@ -234,7 +254,7 @@ export class GeminiService {
         - The response must be a JSON object that strictly adheres to the provided schema. It must contain the 'skill' and 'modules' properties.
         - IMPORTANT: The "skill" property in the JSON response must contain ONLY the original skill name: '${plan.skill}'.
       `;
-      const response = await this.genAI.models.generateContent({
+      const response = await this.genAI!.models.generateContent({
         model: 'gemini-2.5-flash', contents: prompt,
         config: {
             responseMimeType: 'application/json',
@@ -259,6 +279,8 @@ export class GeminiService {
   }
   
   async convertPlanToFramework(plan: LearningPlan, framework: LearningFramework): Promise<LearningPlan | null> {
+      if (!this.checkConfig()) return null;
+
       const numberOfWeeks = plan.modules.length;
       let goal: Goal;
       if (numberOfWeeks <= 13) {
@@ -282,17 +304,19 @@ export class GeminiService {
   }
 
   async generateLevelPreview(skill: string, currentWeek: number): Promise<string> {
+      if (!this.checkConfig()) return "API Config missing";
       try {
           const prompt = `A user is learning "${skill}" and has just completed Week ${currentWeek}. Briefly describe, in an exciting and motivational tone, what they will learn in the next two weeks. Focus on the cool projects or key abilities they will unlock.`;
-          const response = await this.genAI.models.generateContent({ model: 'gemini-2.5-flash', contents: prompt });
+          const response = await this.genAI!.models.generateContent({ model: 'gemini-2.5-flash', contents: prompt });
           return response.text;
       } catch (e) { return "Could not generate a preview at this time."; }
   }
 
   async generateQuiz(skill: string, weekTitle: string): Promise<QuizQuestion[]> {
+      if (!this.checkConfig()) return [];
       try {
           const prompt = `Generate a 3-question multiple-choice quiz for a user learning "${skill}". The quiz should cover topics from the module titled "${weekTitle}". Ensure the questions test for understanding, not just memorization. The response must be a JSON array of objects with "question", "options" (an array of 4 strings), and "correctAnswer" (the string of the correct option).`;
-          const response = await this.genAI.models.generateContent({
+          const response = await this.genAI!.models.generateContent({
               model: 'gemini-2.5-flash', contents: prompt,
               config: {
                   responseMimeType: 'application/json',
@@ -313,10 +337,11 @@ export class GeminiService {
   }
 
   async getSkillSuggestions(baseSkill: string): Promise<string[]> {
+      if (!this.checkConfig()) return [];
       this.error.set(null);
       try {
           const prompt = `Based on an interest in "${baseSkill}", suggest 5 other related or complementary skills someone might want to learn next. Provide only a JSON array of strings.`;
-          const response = await this.genAI.models.generateContent({
+          const response = await this.genAI!.models.generateContent({
               model: 'gemini-2.5-flash',
               contents: prompt,
               config: {
@@ -332,6 +357,7 @@ export class GeminiService {
   }
 
   async getHolisticSuggestions(plans: LearningPlan[]): Promise<string[]> {
+    if (!this.checkConfig()) return [];
     this.error.set(null);
     if (plans.length === 0) return [];
     
@@ -365,7 +391,7 @@ export class GeminiService {
         Provide a total of 5 unique, exciting suggestions as a simple JSON array of strings.
         `;
         
-        const response = await this.genAI.models.generateContent({
+        const response = await this.genAI!.models.generateContent({
             model: 'gemini-2.5-flash',
             contents: prompt,
             config: {
@@ -381,9 +407,10 @@ export class GeminiService {
   }
 
   async findResources(skill: string): Promise<Resource[]> {
+      if (!this.checkConfig()) return [];
       this.error.set(null);
       try {
-          const response = await this.genAI.models.generateContent({
+          const response = await this.genAI!.models.generateContent({
               model: 'gemini-2.5-flash',
               contents: `Find the top 5 most useful articles or video tutorials for a beginner learning ${skill}.`,
               config: {
@@ -401,6 +428,7 @@ export class GeminiService {
   }
   
   async getSageResponse(history: ChatMessage[], newPrompt: ChatMessage, skill: string): Promise<string> {
+      if (!this.checkConfig()) return "I am unable to connect to my brain (API Key missing).";
       this.error.set(null);
       
       const historyForPrompt = history
@@ -425,7 +453,7 @@ export class GeminiService {
               });
           }
 
-          const response = await this.genAI.models.generateContent({
+          const response = await this.genAI!.models.generateContent({
               model: 'gemini-2.5-flash',
               contents: { parts }
           });
@@ -439,6 +467,7 @@ export class GeminiService {
     }
 
   async generateSystemResponse(history: ChatMessage[], schedule: UserSchedule | null): Promise<string> {
+    if (!this.checkConfig()) return "I cannot build a system without my API Key.";
     this.error.set(null);
     const historyForPrompt = history
         .map(m => `${m.role}: ${m.text}`)
@@ -478,7 +507,7 @@ ${historyForPrompt}
 
 Based on the history and your instructions, provide the next response in the conversation.`;
         
-        const response = await this.genAI.models.generateContent({
+        const response = await this.genAI!.models.generateContent({
             model: 'gemini-2.5-flash',
             contents: prompt,
             config: {
@@ -495,6 +524,7 @@ Based on the history and your instructions, provide the next response in the con
   }
   
   async getHomeSageResponse(history: ChatMessage[], plans: LearningPlan[], newPromptText: string): Promise<string> {
+      if (!this.checkConfig()) return "I am currently offline (API Key missing).";
       this.error.set(null);
       
       const historyForPrompt = history
@@ -530,7 +560,7 @@ Based on the history and your instructions, provide the next response in the con
             Do not mention that you are seeing a JSON object. Just use the information naturally in your response.
           `;
 
-          const response = await this.genAI.models.generateContent({
+          const response = await this.genAI!.models.generateContent({
               model: 'gemini-2.5-flash',
               contents: prompt,
           });

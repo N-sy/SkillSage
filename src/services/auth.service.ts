@@ -24,10 +24,10 @@ export class AuthService {
   // 4. Add your deployed domain (e.g. https://myapp.vercel.app) to "Authorized JavaScript origins".
   // 5. Paste the Client ID below.
   // -------------------------------------------------------------------------
-  public readonly CLIENT_ID = '985162410268-7ldbd7hmetpt65iqga848gk2crlrtf4u.apps.googleusercontent.com';
+  public readonly CLIENT_ID = '985162410268-oj78nhm942fsnsuh5f2mj8s9p464tgfu.apps.googleusercontent.com';
   
   // Used to detect if the user has updated the ID or is still using the demo one
-  private readonly DEFAULT_CLIENT_ID = '985162410268-7ldbd7hmetpt65iqga848gk2crlrtf4u.apps.googleusercontent.com';
+  private readonly DEFAULT_CLIENT_ID = '985162410268-oj78nhm942fsnsuh5f2mj8s9p464tgfu.apps.googleusercontent.com';
 
   // Using drive.file scope so the app can create/edit its own files without needing full Drive access
   private readonly SCOPES = 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email openid';

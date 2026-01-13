@@ -1,3 +1,4 @@
+
 import { Component, ChangeDetectionStrategy, signal, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AppState, PlanConfig, LearningPlan, AssessmentMessage } from './models';
@@ -39,7 +40,7 @@ export class AppComponent {
     return this.planConfig() as PlanConfig;
   });
 
-  private geminiService = inject(GeminiService);
+  public geminiService = inject(GeminiService);
   persistenceService = inject(PersistenceService);
   authService = inject(AuthService);
 

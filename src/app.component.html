@@ -1,3 +1,4 @@
+
 <main class="min-h-screen p-4 sm:p-6 lg:p-8 transition-colors duration-300">
   <div class="max-w-7xl mx-auto">
     <header class="flex justify-between items-center mb-8">
@@ -40,6 +41,37 @@
         }
       </div>
     </header>
+
+    @if (geminiService.error() === 'MISSING_API_KEY') {
+        <div class="mb-8 p-6 rounded-2xl bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-100 dark:border-blue-900/50">
+             <div class="flex items-start gap-4">
+                 <div class="p-3 bg-blue-100 dark:bg-blue-800 rounded-full text-blue-600 dark:text-blue-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                 </div>
+                 <div>
+                    <h3 class="text-xl font-bold text-blue-900 dark:text-blue-100">Setup Required</h3>
+                    <p class="mt-2 text-dark dark:text-light">This application uses Google Gemini API and requires an API Key to function.</p>
+                    
+                    <div class="mt-4 space-y-3">
+                        <div class="p-4 bg-white dark:bg-black rounded-lg border border-gray-200 dark:border-gray-700">
+                            <p class="font-bold text-sm text-medium uppercase mb-1">If you are running locally:</p>
+                            <p class="text-sm">Create a file named <code>.env</code> in the root of your project and add:</p>
+                            <code class="block mt-2 p-2 bg-gray-100 dark:bg-gray-800 rounded font-mono text-primary">API_KEY=your_actual_api_key_here</code>
+                        </div>
+
+                        <div class="p-4 bg-white dark:bg-black rounded-lg border border-gray-200 dark:border-gray-700">
+                            <p class="font-bold text-sm text-medium uppercase mb-1">If you are deployed (Vercel/Netlify):</p>
+                            <p class="text-sm">Go to your project settings dashboard and add an Environment Variable:</p>
+                            <ul class="list-disc list-inside mt-2 text-sm text-medium">
+                                <li>Key: <code>API_KEY</code></li>
+                                <li>Value: <code>your_actual_api_key_here</code></li>
+                            </ul>
+                        </div>
+                    </div>
+                 </div>
+             </div>
+        </div>
+    }
 
     @if (authService.errorMessage(); as msg) {
         <div class="mb-6 p-6 rounded-2xl bg-red-50 dark:bg-red-900/20 border-2 border-red-100 dark:border-red-900/50">
